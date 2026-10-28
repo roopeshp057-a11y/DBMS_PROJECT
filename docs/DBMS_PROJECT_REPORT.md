@@ -1,15 +1,7 @@
-# Department of Computer Science and Engineering
-## DBMS Experiential Learning — Level 3 Project Report
+# Project Report: College Canteen Food Waste Tracker (EcoBite)
 
----
-
-# EcoBite: College Canteen Food Waste Intelligence & Analytics Platform
-
-**Course:** Database Management Systems (Experiential Learning Level 3)  
-**Institution:** PES University, Bengaluru  
-**Department:** Computer Science and Engineering  
-**Academic Year:** 2026–2027  
-**Team Repository:** [https://github.com/roopeshp057-a11y/DBMS_PROJECT](https://github.com/roopeshp057-a11y/DBMS_PROJECT)  
+**Repository:** [https://github.com/roopeshp057-a11y/DBMS_PROJECT](https://github.com/roopeshp057-a11y/DBMS_PROJECT)  
+**System:** Dual-Paradigm Database System (SQL + NoSQL) with Next.js Interface  
 
 ---
 
@@ -237,18 +229,17 @@ ORDER BY b.waste_percentage DESC;
 ```
                        ┌────────────────────────────────────────┐
                        │     CLIENT WEB BROWSER (Next.js 14)    │
-                       │   - Admin Executive Dashboard          │
-                       │   - Staff Quick-Log Portal             │
-                       │   - Student Sensory Feedback Kiosk     │
-                       │   - Examiner Viva Verification Hub     │
+                       │   - Admin Dashboard                    │
+                       │   - Staff Portal                       │
+                       │   - Student Feedback & Deals           │
                        └───────────────────┬────────────────────┘
                                            │ HTTP / JSON API
                                            ▼
                        ┌────────────────────────────────────────┐
                        │           NEXT.JS API BACKEND          │
                        │   /api/analytics    /api/batches       │
-                       │   /api/recommendation  /api/viva       │
-                       │   /api/feedback     /api/deals         │
+                       │   /api/recommendation  /api/deals      │
+                       │   /api/feedback                        │
                        └───────────┬────────────────┬───────────┘
                                    │                │
                     Structured Data│                │Unstructured
