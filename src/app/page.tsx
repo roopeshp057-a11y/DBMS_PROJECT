@@ -37,15 +37,9 @@ interface CurrentUser {
 
 export default function Home() {
   // Authentication State
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>({
-    id: 1,
-    name: 'Dr. Rajesh Rao',
-    email: 'admin@canteen.pes.edu',
-    role: 'ADMIN',
-  });
-
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'STAFF' | 'STUDENT'>('ADMIN');
+  const [passwordInput, setPasswordInput] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
 
@@ -120,21 +114,21 @@ export default function Home() {
   }, [simFoodId, simDay]);
 
   // Handle Login Submission
-  const handleLogin = async (roleOverride?: 'ADMIN' | 'STAFF' | 'STUDENT') => {
+  const handleLogin = async (role: 'ADMIN' | 'STAFF' | 'STUDENT', password?: string) => {
     setLoginLoading(true);
     setLoginError('');
     try {
-      const payload = roleOverride ? { role: roleOverride } : { email: loginEmail, password: loginPassword };
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ role, password }),
       });
       const data = await res.json();
       if (!res.ok) {
         setLoginError(data.error || 'Login failed. Please check your credentials.');
       } else {
         setCurrentUser(data.user);
+        setPasswordInput('');
       }
     } catch (err: any) {
       setLoginError(err.message || 'Login error');
@@ -239,7 +233,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* User Profile & Role Switcher */}
+          {/* User Profile (Role switcher removed - requires logout) */}
           {currentUser ? (
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center space-x-2 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-800">
@@ -257,48 +251,25 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Quick Switch Roles */}
-              <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs">
-                <button
-                  onClick={() => handleLogin('ADMIN')}
-                  className={`px-2.5 py-1.5 rounded-lg transition-all font-medium ${
-                    currentUser.role === 'ADMIN' ? 'bg-emerald-500 text-white font-bold' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Admin View
-                </button>
-                <button
-                  onClick={() => handleLogin('STAFF')}
-                  className={`px-2.5 py-1.5 rounded-lg transition-all font-medium ${
-                    currentUser.role === 'STAFF' ? 'bg-emerald-500 text-white font-bold' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Staff View
-                </button>
-                <button
-                  onClick={() => handleLogin('STUDENT')}
-                  className={`px-2.5 py-1.5 rounded-lg transition-all font-medium ${
-                    currentUser.role === 'STUDENT' ? 'bg-emerald-500 text-white font-bold' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Student View
-                </button>
-                <button
-                  onClick={() => setCurrentUser(null)}
-                  title="Logout"
-                  className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-900 transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
+              {/* Logout Button */}
+              <button
+                onClick={() => {
+                  setCurrentUser(null);
+                  setPasswordInput('');
+                  setLoginError('');
+                }}
+                title="Logout"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-400 hover:text-red-400 rounded-xl bg-slate-950/80 border border-slate-800 hover:bg-slate-900 hover:border-red-900/40 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
+              </button>
             </div>
           ) : (
-            <button
-              onClick={() => handleLogin('ADMIN')}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-md shadow-emerald-500/20"
-            >
-              Sign In to System
-            </button>
+            <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-400 rounded-xl bg-slate-900/80 border border-slate-800">
+              <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Authentication Required</span>
+            </div>
           )}
         </div>
       </header>
@@ -325,65 +296,133 @@ export default function Home() {
               </div>
             )}
 
-            {/* Quick Demo Role Cards */}
-            <div className="space-y-2.5 mb-6">
+            {/* Role Selectors */}
+            <div className="grid grid-cols-3 gap-2 mb-6">
               <button
                 type="button"
-                onClick={() => handleLogin('ADMIN')}
-                className="w-full text-left p-3.5 bg-slate-900/80 hover:bg-slate-800/90 border border-slate-700/80 rounded-2xl transition-all flex items-center justify-between group"
+                onClick={() => {
+                  setSelectedRole('ADMIN');
+                  setLoginError('');
+                }}
+                className={`p-3 rounded-2xl border text-center transition-all ${
+                  selectedRole === 'ADMIN'
+                    ? 'bg-blue-500/20 border-blue-500 text-white font-bold shadow-lg shadow-blue-500/10'
+                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                }`}
               >
-                <div className="flex items-center space-x-3">
-                  <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
-                    <BarChart3 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors">
-                      Sign In as Admin
-                    </div>
-                    <div className="text-[11px] text-slate-400">Waste analytics, recommendations & student feedback</div>
-                  </div>
+                <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center mx-auto mb-1.5">
+                  <BarChart3 className="w-4 h-4" />
                 </div>
-                <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition-transform group-hover:translate-x-1" />
+                <div className="text-xs font-semibold">Admin</div>
+                <div className="text-[10px] text-amber-400 flex items-center justify-center gap-0.5 mt-0.5 font-medium">
+                  <Lock className="w-2.5 h-2.5" /> Pass Req
+                </div>
               </button>
 
               <button
                 type="button"
-                onClick={() => handleLogin('STAFF')}
-                className="w-full text-left p-3.5 bg-slate-900/80 hover:bg-slate-800/90 border border-slate-700/80 rounded-2xl transition-all flex items-center justify-between group"
+                onClick={() => {
+                  setSelectedRole('STAFF');
+                  setLoginError('');
+                }}
+                className={`p-3 rounded-2xl border text-center transition-all ${
+                  selectedRole === 'STAFF'
+                    ? 'bg-emerald-500/20 border-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/10'
+                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                }`}
               >
-                <div className="flex items-center space-x-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                    <ChefHat className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors">
-                      Sign In as Canteen Staff
-                    </div>
-                    <div className="text-[11px] text-slate-400">Daily food entry & surplus clearance publisher</div>
-                  </div>
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-1.5">
+                  <ChefHat className="w-4 h-4" />
                 </div>
-                <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition-transform group-hover:translate-x-1" />
+                <div className="text-xs font-semibold">Staff</div>
+                <div className="text-[10px] text-amber-400 flex items-center justify-center gap-0.5 mt-0.5 font-medium">
+                  <Lock className="w-2.5 h-2.5" /> Pass Req
+                </div>
               </button>
 
               <button
                 type="button"
-                onClick={() => handleLogin('STUDENT')}
-                className="w-full text-left p-3.5 bg-slate-900/80 hover:bg-slate-800/90 border border-slate-700/80 rounded-2xl transition-all flex items-center justify-between group"
+                onClick={() => {
+                  setSelectedRole('STUDENT');
+                  setLoginError('');
+                }}
+                className={`p-3 rounded-2xl border text-center transition-all ${
+                  selectedRole === 'STUDENT'
+                    ? 'bg-amber-500/20 border-amber-500 text-white font-bold shadow-lg shadow-amber-500/10'
+                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                }`}
               >
-                <div className="flex items-center space-x-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                    <Tag className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors">
-                      Sign In as Student
-                    </div>
-                    <div className="text-[11px] text-slate-400">Browse menu, claim 50% flash deals & submit feedback</div>
-                  </div>
+                <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-1.5">
+                  <Tag className="w-4 h-4" />
                 </div>
-                <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition-transform group-hover:translate-x-1" />
+                <div className="text-xs font-semibold">Student</div>
+                <div className="text-[10px] text-emerald-400 flex items-center justify-center gap-0.5 mt-0.5 font-medium">
+                  <CheckCircle2 className="w-2.5 h-2.5" /> Open
+                </div>
               </button>
             </div>
+
+            {/* Role Form */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleLogin(selectedRole, selectedRole === 'STUDENT' ? undefined : passwordInput);
+              }}
+              className="space-y-4"
+            >
+              {selectedRole !== 'STUDENT' ? (
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{selectedRole === 'ADMIN' ? 'Admin' : 'Staff'} Password</span>
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-mono">Pass: pesu@123</span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      value={passwordInput}
+                      onChange={(e) => setPasswordInput(e.target.value)}
+                      placeholder="Enter password (pesu@123)"
+                      className="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      autoFocus
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-2 flex items-center gap-1">
+                    <Shield className="w-3 h-3 text-emerald-400" />
+                    <span>Admin and Staff logins are password-protected with </span>
+                    <code className="text-emerald-400 bg-emerald-950/60 px-1 py-0.5 rounded border border-emerald-800 text-[10px]">pesu@123</code>
+                  </p>
+                </div>
+              ) : (
+                <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-xs text-emerald-300 flex items-center gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <div>
+                    <div className="font-semibold text-emerald-200">Open Student Dining Access</div>
+                    <div className="text-[11px] text-emerald-400/80 mt-0.5">Browse today's menu, claim 50% flash deals & submit feedback without a password.</div>
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loginLoading}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-bold py-3 rounded-xl transition-all shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2"
+              >
+                {loginLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Authenticating...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign In as {selectedRole === 'ADMIN' ? 'Admin' : selectedRole === 'STAFF' ? 'Staff' : 'Student'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
           </div>
         )}
 
